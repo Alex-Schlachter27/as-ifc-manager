@@ -1,0 +1,35 @@
+
+<div
+    #canvas
+    canvasEvents
+    id="three-canvas">
+</div>
+
+
+<!-- <button
+  mat-raised-button
+  class="btn"
+  id="bottom-button"
+  (click)="loadIfcAsFragments()"
+>Basic</button> -->
+
+
+<!-- (longPress)="onLongPress($event)"
+(shortPress)="onShortPress($event)"
+(shortPressRight)="onShortPressRight($event)" -->
+
+<!-- <div #canvas id="canvas">
+</div> -->
+
+<!--hidden button for file upload-->
+<input #ifcUpload type="file"
+(change)="loadIfcAsFragments($event)" style="display:none">
+
+<input #idsUpload type="file"
+(change)="loadIds($event)" style="display:none">
+
+<validation-report
+  *ngIf="idsResult"
+  [idsResult]="idsResult"
+  (showResults)="visualizeFailedEntities($event)"
+></validation-report>

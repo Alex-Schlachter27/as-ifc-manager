@@ -1,0 +1,41 @@
+<!-- <button
+  mat-raised-button
+  class="btn"
+  id="bottom-button"
+  (click)="loadIfcAsFragments()"
+>Basic</button> -->
+
+
+<div *ngFor="let specification of idsResult.specifications">
+  <mat-expansion-panel>
+    <mat-expansion-panel-header>
+      <mat-panel-title>{{ specification.name }}</mat-panel-title>
+      <mat-panel-description>{{ specification.description }}</mat-panel-description>
+    </mat-expansion-panel-header>
+    <div *ngFor="let requirement of specification.requirements" id="spec-content">
+      <div>{{ requirement.description }}</div>
+
+      <div id="button-row">
+        <button
+          class="btn"
+          mat-raised-button
+          (click)="handleShowResults(requirement)"
+          matTooltip="Show Results in 3D">
+          <mat-icon>visibility</mat-icon>
+        </button>
+        <button
+          mat-raised-button
+          class="btn"
+          (click)="toggleshowEntityList()"
+          style="background-color: lightgray;"
+          matTooltip="Show Results in 3D">
+          <mat-icon>list</mat-icon>
+        </button>
+      </div>
+
+      <ul *ngIf="showEntityList">
+        <li *ngFor="let entity of requirement.failed_entities">{{ entity.element }}</li>
+      </ul>
+    </div>
+  </mat-expansion-panel>
+</div>

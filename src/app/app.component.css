@@ -1,0 +1,24 @@
+.app-extends{
+  height: 100%;
+  width: 100%;
+  /* overflow: hidden; */
+  /* background-image: linear-gradient(to right top, #dae9ff, #d0eeff, #c8f2fd, #c6f6f5, #cbf8ea); */
+}
+
+
+#bottom-toolbar {
+  position: absolute;
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  height: 100px;
+  bottom: 10px;
+  left: 50%;
+  -ms-transform: translate(-50%, -50%);
+  transform: translate(-50%, -50%);
+}
+
+#bottom-toolbar:hover{
+}

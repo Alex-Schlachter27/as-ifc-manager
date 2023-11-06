@@ -1,0 +1,42 @@
+/* @import "../bim.components.css"; */
+
+/* #three-canvas {
+  position:relative;
+  height:100%;
+  width:100%;
+  /* overflow:hidden; */
+  /* z-index:1;
+  background-image: linear-gradient(to right top, #dae9ff, #d0eeff, #c8f2fd, #c6f6f5, #cbf8ea); */
+/* } */
+
+#three-canvas{
+  position: relative;
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+  /* z-index: 0; */
+
+}
+
+/* #bottom-button {
+  position: absolute;
+  margin: 0;
+  bottom: 50px;
+  left: 50%;
+  -ms-transform: translate(-50%, -50%);
+  transform: translate(-50%, -50%);
+} */
+
+/* #top-toolbar-container{
+  position: absolute;
+  left: 50px;
+  top: 50px;
+} */
+
+/* #canvas{
+  position: relative;
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+  z-index: 1;
+} */
