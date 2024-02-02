@@ -40,3 +40,22 @@
   overflow: hidden;
   z-index: 1;
 } */
+
+
+#viewer-panel-right{
+  position: absolute;
+  top: 15px;
+  right: 20px;
+  z-index: 10;
+  max-height: calc(100vh - 20px); /* Maximum height relative to viewport height */
+  /* background-color: blueviolet; */
+  padding: 5px
+}
+
+.viewer-panel-container {
+  display: flex;
+  flex-direction: column;
+  justify-content:center;
+  align-items:end;
+  gap: 10px;
+}

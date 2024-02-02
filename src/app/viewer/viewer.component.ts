@@ -1,4 +1,4 @@
-import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
+import { Component, ElementRef, OnChanges, OnInit, SimpleChanges, ViewChild } from '@angular/core';
 import * as THREE from "three";
 import * as OBC from "openbim-components";
 
@@ -6,6 +6,7 @@ import { StateService } from '../services/state.service';
 import { ModelLoaderService } from '../services/model-loader.service';
 import { ApiService } from '../services/ifc-api.service';
 import { ToolbarButtonService } from '../services/toolbar-button.service';
+import { HttpResponse } from '@angular/common/http';
 
 @Component({
   selector: 'viewer',
@@ -27,6 +28,7 @@ export class ViewerComponent implements OnInit {
   }
   @ViewChild('ifcUpload') ifcUpload!: ElementRef;
   @ViewChild('idsUpload') idsUpload!: ElementRef;
+  @ViewChild('scheduleUpload') scheduleUpload!: ElementRef;
 
   public viewer = new OBC.Components();
   public container?: HTMLElement;
@@ -43,7 +45,28 @@ export class ViewerComponent implements OnInit {
   public ifcFiles: File[] = [];
   public idsFile?: File;
 
+  public mainToolbar?: OBC.Toolbar;
+
+  public activeViewerComponents: any = {
+    "legend": false,
+    "ids": false,
+  };
+
+  public legendData: any[] = [
+    {
+        "text": "Sample",
+        "value": "SAMPLE",
+        "color": "#ffffff",
+    },
+  ];
+
+  public colorMap: any = {
+    "idsFailed": "#F82C00",
+    "idsSuccess": "#007F00"
+  };
+
   public idsResult?: any;
+  public scheduleParamsResponse?: any;
 
 
   constructor(
@@ -124,16 +147,28 @@ export class ViewerComponent implements OnInit {
 
     this._modelLoader.initiateLoadingProcesses(propertiesProcessor, this.highlighterComponent, this.fragmentClassifier);
 
-    const mainToolbar = await this.addToolbar(this.viewer);
+    this.mainToolbar = await this.addToolbar(this.viewer);
 
     // (Model) Upload
-    this._button.uploadModelButton(mainToolbar, this.viewer, this.ifcUpload);
-    this._button.uploadIDSlButton(mainToolbar, this.viewer, this.idsUpload);
-    this.highlightByClass(mainToolbar, this.viewer)
+    const modelButton = this._button.uploadModelButton(this.viewer, this.ifcUpload);
+    const idsButton = this._button.uploadIDSlButton(this.viewer, this.idsUpload);
+    const scheduleButton = this._button.addChildButton(this.viewer, this.scheduleUpload, "Schedule", "Upload 4D Schedule");
 
+    const containerButton = this._button.addContainerButton(this.viewer, "upload")
+    containerButton.addChild(
+      modelButton,
+      idsButton,
+      scheduleButton
+    )
 
     // Model Overview
-    mainToolbar.addChild( this.fragmentManager.uiElement.get("main"));
+    this.mainToolbar.addChild(
+      containerButton,
+      this.fragmentManager.uiElement.get("main"),
+    );
+
+    // Highlight by Class
+    this.highlightByClass(this.mainToolbar, this.viewer);
 
     // IFC Loader
     // mainToolbar.addChild(this.ifcLoader.uiElement.get("main")); // Default openBIMComponents
@@ -156,8 +191,6 @@ export class ViewerComponent implements OnInit {
     // }
     // this._button.addCustomUiToToolbar(mainToolbar, validateButton);
     // this.addCustomUiToToolbar(mainToolbar, productButton);
-
-    this._button.addProductButton(mainToolbar, this.ifcFiles[0], this.viewer);
 
     // Add some elements to the scene
     // this.addRotatingCubes();
@@ -195,6 +228,14 @@ export class ViewerComponent implements OnInit {
 
     this.fragmentManager!.updateWindow()
     console.log("Model loaded!")
+
+    // Make with Observable that only runs if a model is loaded! OR if no models, disable the button!
+    if(this.ifcFiles.length == 1) {
+      this._button.addProductButton(this.mainToolbar!, this.ifcFiles[0], this.viewer);
+
+      // Test, get intersection of two elements
+      // this.getIntersection(this.mainToolbar!, this.viewer);
+    }
   }
 
 
@@ -215,6 +256,32 @@ export class ViewerComponent implements OnInit {
 
   }
 
+  async loadSchedule(event: any) {
+
+    if (event.target.files.length == 0) {
+      console.log("No file selected!");
+      return;
+    }
+    const scheduleFile = event.target.files[0] as File;
+    console.log("schedule loaded!")
+    console.log(scheduleFile)
+
+    // IDS Validation
+    const mainToolbar = this.viewer.ui.toolbars[0];
+    // console.log(mainToolbar)
+
+    const simCheckButton = this.addScheduleParamsCheckButton(this.viewer, this.ifcFiles[0], scheduleFile);
+    const simDownloadButton = this.addScheduleParamsDownloadButton(this.viewer, this.ifcFiles[0], scheduleFile);
+
+    const containerButton = this._button.addContainerButton(this.viewer, "construction")
+    containerButton.addChild(
+      simCheckButton,
+      simDownloadButton
+    )
+    mainToolbar.addChild(containerButton)
+
+  }
+
 
   getIds(_apiService: any) {
       // console.log("test ids");
@@ -227,7 +294,7 @@ export class ViewerComponent implements OnInit {
 
   visualizeFailedEntities(failedEntities: any[]) {
     // Use three.js to visualize the failed entities in your 3D model
-    console.log(failedEntities)
+    console.log(failedEntities);
 
     // Reset 3D scene
     this.highlighterComponent?.clear();
@@ -241,7 +308,7 @@ export class ViewerComponent implements OnInit {
     // TODO: Only set the onws that meet the requirements to green!
     const allItemsFragmentMap = this.getFragmentIdMapOfAllIds();
     if(!this.highlighterComponent?.highlightMats["highlighter_validEntities"]) {
-      this.highlighterComponent?.add("highlighter_validEntities", [new THREE.MeshStandardMaterial({ color: "#007F00"})])
+      this.highlighterComponent?.add("highlighter_validEntities", [new THREE.MeshStandardMaterial({ color: this.colorMap.idsSuccess})])
     }
     this.highlighterComponent?.highlightByID("highlighter_validEntities", allItemsFragmentMap!)
 
@@ -253,12 +320,33 @@ export class ViewerComponent implements OnInit {
     if(failedEntitiesFragmentMap) {
       // if highlighter does not yet exist, create it
       if(!this.highlighterComponent?.highlightMats["highlighter_failedEntities"]) {
-        this.highlighterComponent?.add("highlighter_failedEntities", [new THREE.MeshStandardMaterial({ color: "#F82C00"})])
+        this.highlighterComponent?.add("highlighter_failedEntities", [new THREE.MeshStandardMaterial({ color: this.colorMap.idsFailed})])
       }
       this.highlighterComponent?.highlightByID("highlighter_failedEntities", failedEntitiesFragmentMap)
     } else {
       console.log("No fragmentMap was generated")
     }
+
+
+    console.log(this.highlighterComponent);
+    console.log(this.fragmentManager)
+
+    // Update Legend
+
+    // ADD COUNT
+    this.legendData = [
+      {
+        "text": "failed",
+        "value": "failed",
+        "color": this.colorMap.idsFailed,
+        "count": failedEntities.length,
+      },{
+        "text": "ok",
+        "value": "ok",
+        "color": this.colorMap.idsSuccess,
+      },
+    ];
+    this.activeViewerComponents.legend = true;
   }
 
   hightlightByExpressIds(ids: number[], highlightName: string, hex = "#F82C00") {
@@ -278,6 +366,7 @@ export class ViewerComponent implements OnInit {
 
   getFragmentIdMapOfExpressIds(ids: number[]): OBC.FragmentIdMap | undefined {
     console.log( this.fragmentManager!.groups)
+    console.log( this.fragmentManager!)
 
     // Only one fragmentGroup per ifc-Model??
     const group = this.fragmentManager!.groups[0];
@@ -360,6 +449,55 @@ export class ViewerComponent implements OnInit {
     });
   }
 
+  getIntersection(toolbar: OBC.Toolbar, viewer: OBC.Components) {
+
+    console.log(viewer);
+    console.log(this.scene)
+
+    // Clear any previous highlighting
+    this.highlighterComponent?.clear();
+
+    // NExt, get any ID list by fragment classifier
+    // const entitiesSystem = this.fragmentClassifier!.get()['entities'];
+
+    const idList1: any = [5548];
+    const idList2: any = [5498];
+
+    // Highlight failed entities
+    const fragmentMap1 = this.getFragmentIdMapOfExpressIds(idList1);
+    const fragmentMap2 = this.getFragmentIdMapOfExpressIds(idList2);
+
+    if(fragmentMap1) {
+      // if highlighter does not yet exist, create it
+      if(!this.highlighterComponent?.highlightMats["highlighter_intersectionSet_1"]) {
+        this.highlighterComponent?.add("highlighter_intersectionSet_1", [new THREE.MeshStandardMaterial({ color: this.colorMap.idsSuccess})]);
+      }
+      this.highlighterComponent?.highlightByID("highlighter_intersectionSet_1", fragmentMap1)
+
+      this.highlighterComponent?.add("highlighter_intersectionSet_2", [new THREE.MeshStandardMaterial({ color: this.colorMap.idsFailed})]);
+      this.highlighterComponent?.highlightByID("highlighter_intersectionSet_2", fragmentMap2!)
+    } else {
+      console.log("No fragmentMap was generated")
+    }
+
+    // Get MEshes
+    this.fragmentManager?.updateWindow();
+    const  fragmentMeshes = viewer.meshes; // Does all fragmentMeshes include the new created mesh??
+    const fragmentMesh = fragmentMeshes[0] as any; // Get only one fragment (from 93 in Duplex_A)
+    // console.log(viewer.meshes);
+    console.log(fragmentMesh)
+    const fragmentMesh_Highlighter = fragmentMesh["fragment"]["fragments"]
+    console.log(fragmentMesh_Highlighter)
+    const fragment_intersection1 = fragmentMesh_Highlighter["highlighter_intersectionSet_1"] // undefined as highlighter selections are first "active" later?!
+    console.log(fragment_intersection1)
+
+
+    const meshList1 = this.highlighterComponent?.components.meshes[0];
+    const meshList2 = this.highlighterComponent?.components.meshes[1];
+
+    // Run clash detection
+  }
+
   getRandomColor() {
     const hexColors = [
       "#FF5733",
@@ -413,6 +551,97 @@ export class ViewerComponent implements OnInit {
         });
       }
     });
+
+  }
+
+  addScheduleParamsCheckButton(viewer: OBC.Components, ifcFile: File, scheduleFile?: File) {
+    const uiElement = new OBC.Button(viewer, { name: "Check Mapping" });
+    uiElement.tooltip = "Check 4D Params Mapping from Schedule";
+
+    const params = {
+      schedule_sheet: "Task_Table1",
+      mapping_column: "Mark",
+      task_type_column: "Task_Type_(4D)",
+      target_pset: "Identity Data",
+      identity_prop: "Mark",
+      group_prop: "PAA_Group Identification",
+
+    }
+
+    uiElement.onClick.add(() => {
+      if(!scheduleFile) {
+        alert('Please upload a schedule-file first!');
+      } else {
+        this._apiService.addScheduleParams(ifcFile, scheduleFile, params)
+          .subscribe((response: any) => {
+            console.log(response);
+            this.scheduleParamsResponse = response; // Text result;
+          })
+      }
+    });
+
+    return uiElement
+  }
+
+  addSuffixToFilename(filename: string, suffix: string) {
+    const [baseName, extension] = filename.split('.');
+
+    // Check if the filename has an extension
+    if (extension) {
+      return `${baseName}_${suffix}.${extension}`;
+    } else {
+      // If the filename has no extension, add the suffix directly
+      return `${filename}_${suffix}`;
+    }
+  }
+
+  addScheduleParamsDownloadButton(viewer: OBC.Components, ifcFile: File, scheduleFile?: File) {
+    const uiElement = new OBC.Button(viewer, { name: "Download" });
+    uiElement.tooltip = "Download 4D Model";
+
+    const params = {
+      schedule_sheet: "Task_Table1",
+      mapping_column: "Mark",
+      task_type_column: "Task_Type_(4D)",
+      target_pset: "Identity Data",
+      identity_prop: "Mark",
+      group_prop: "PAA_Group Identification",
+
+    }
+
+    const download: string = "True";
+
+    uiElement.onClick.add(() => {
+      if(!scheduleFile) {
+        alert('Please upload a schedule-file first!');
+      } else {
+
+        this._apiService.addScheduleParams(ifcFile, scheduleFile, params, download)
+          .subscribe((response: any) => {
+            console.log(response);
+            const file = response; // File data
+
+            // get fileName
+            const newFilename = this.addSuffixToFilename(ifcFile.name, "4D");
+            console.log(newFilename)
+
+            // Save the file as a blob
+            const blob = new Blob([file], { type: "text/plain" });
+
+            // Create a blob URL and trigger the download
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = newFilename;
+            a.click();
+
+            // Revoke the blob URL to free up resources
+            URL.revokeObjectURL(url);
+            });
+      }
+    });
+
+    return uiElement
 
   }
 

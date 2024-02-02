@@ -1,0 +1,29 @@
+svg {
+  /* width: calc(100vw - 50px); */
+  display: block;
+}
+.clickable {
+  cursor: pointer;
+}
+.clickable:hover {
+  opacity: 0.8;
+}
+
+.temp-row{
+  border: 1px solid rgb(118, 118, 118);
+  width: 100%;
+  padding: 5px 5px 2px 5px;
+  border-radius: 5px;
+}
+
+.mat-icon{
+  color: rgb(118, 118, 118);
+}
+.mat-icon:hover{
+  color: black;
+  cursor: pointer;
+}
+
+input{
+  background-color: transparent;
+}

@@ -1,7 +1,9 @@
 import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ViewerComponent } from './viewer.component';
-import { ValidationComponent } from './validation/validation.component';
+
+import { ValidationComponent } from './util/validation/validation.component';
+import { LegendsModule } from './util/legend/legends.module';
 
 
 import { MatTooltipModule } from '@angular/material/tooltip';
@@ -22,6 +24,7 @@ import {MatExpansionModule} from '@angular/material/expansion';
     MatButtonModule,
     MatIconModule,
     MatExpansionModule,
+    LegendsModule,
   ],
   exports: [
     ViewerComponent

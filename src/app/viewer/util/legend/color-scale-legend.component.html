@@ -1,0 +1,32 @@
+<svg class="cs-canvas" [attr.width]="width" [attr.height]="canvasHeight">
+  <!-- Legend title -->
+  <text
+    *ngIf="title"
+    x="0"
+    y="0"
+    alignment-baseline="hanging"
+    font-weight="bold"
+  >
+    {{ title }}
+  </text>
+
+  <!-- Rectangles and text -->
+  <g
+    *ngFor="let item of boxes"
+    (mouseover)="hoveringItem(item)"
+    [attr.matTooltip]="item.label.text"
+  >
+    <rect
+      stroke="$rock144"
+      [attr.fill]="item.color"
+      [attr.x]="item.rect.x"
+      [attr.y]="item.rect.y"
+      [attr.width]="item.rect.width"
+      [attr.height]="item.rect.height"
+    />
+
+    <text [attr.x]="item.label.x" [attr.y]="item.label.y">
+      {{ item.label.text }}
+    </text>
+  </g>
+</svg>

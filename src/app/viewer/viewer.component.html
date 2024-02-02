@@ -28,8 +28,33 @@
 <input #idsUpload type="file"
 (change)="loadIds($event)" style="display:none">
 
-<validation-report
-  *ngIf="idsResult"
-  [idsResult]="idsResult"
-  (showResults)="visualizeFailedEntities($event)"
-></validation-report>
+<input #scheduleUpload type="file"
+(change)="loadSchedule($event)" style="display:none">
+
+<!-- Container with viewer components on the right side -->
+<div id="viewer-panel-right">
+  <div class="viewer-panel-container">
+
+    <!-- VALIDATION -->
+    <validation-report
+      *ngIf="idsResult"
+      [idsResult]="idsResult"
+      (showResults)="visualizeFailedEntities($event)"
+    ></validation-report>
+
+
+    <!-- LEGEND -->
+    <color-legend-round
+      *ngIf="activeViewerComponents.legend == true"
+      style="margin-right: 10px;"
+      [clickable]="false"
+      [width]="120"
+      [data]="legendData"
+    ></color-legend-round>
+    <!-- <color-legend-round *ngIf="activityPanelExpanded" style="margin-left: 10px;" [clickable]="false" [width]="300" [data]="legendData" ></color-legend-round> -->
+
+  </div>
+</div>
+
+
+

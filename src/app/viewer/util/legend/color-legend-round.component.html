@@ -1,0 +1,38 @@
+<svg class="cs-canvas" [attr.width]="width" [attr.height]="canvasHeight">
+  <!-- Legend title -->
+  <text
+    *ngIf="title"
+    x="0"
+    y="0"
+    alignment-baseline="hanging"
+    font-weight="bold"
+  >
+    {{ title }}
+  </text>
+
+  <!-- Circles and text -->
+  <g
+    *ngFor="let item of circles"
+    (mouseover)="hoveringItem(item)"
+    [class.clickable]="clickable"
+    (click)="itemClick(item.value)"
+    [attr.id]="item.value"
+  >
+    <circle
+      stroke="$rock144"
+      [attr.fill]="item.color"
+      [attr.cx]="item.circ.x"
+      [attr.cy]="item.circ.y"
+      [attr.r]="item.circ.r"
+    />
+
+    <text
+      alignment-baseline="middle"
+      fill="white"
+      [attr.x]="item.label.x"
+      [attr.y]="item.label.y"
+    >
+      {{ item.label.text }}
+    </text>
+  </g>
+</svg>

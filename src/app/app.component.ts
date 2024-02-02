@@ -21,6 +21,7 @@ export class AppComponent {
 
   ngAfterViewInit() {
     this.scene = this.ViewerComponentViewChild.scene;
+    console.log(this.scene)
   }
 
   ngOnInit(): void {

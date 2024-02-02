@@ -1,4 +1,4 @@
-import { HttpClient, HttpBackend, HttpErrorResponse } from '@angular/common/http';
+import { HttpClient, HttpBackend, HttpErrorResponse, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { environment } from 'src/environments/environment';
 import { Observable, throwError } from 'rxjs';
@@ -17,17 +17,21 @@ export class ApiService {
         this.http = new HttpClient(handler);
     }
 
+    // private endpoint = "https://app-designengineering-ifcapi-dev.azurewebsites.net/"
+    private endpoint = "http://127.0.0.1:8000/"
+
     testAPI() {
-      const url = "http://127.0.0.1:8000/ids/";
+      const url = this.endpoint + "ids/";
       return this.http.get(url);
     }
 
     validateModel(ifc: File, ids: File) {
+      console.log("validation initiated")
       const formData = new FormData();
       formData.append('ifc', ifc, ifc.name);
       formData.append('ids', ids, ids.name);
 
-      const url = "http://127.0.0.1:8000/ids/validate/";
+      const url = this.endpoint + "ids/validate/";
 
       return this.http.post(url, formData)
       .pipe(
@@ -35,11 +39,40 @@ export class ApiService {
       );
     }
 
+    addScheduleParams(ifc: File, schedule: File, params: any, download: string = "False") {
+      console.log("validation initiated")
+
+      const formData = new FormData();
+      formData.append('ifc', ifc, ifc.name);
+      formData.append('schedule', schedule, schedule.name);
+      for(let key in params) {
+        formData.append(key, params[key]);
+      }
+
+      const url = this.endpoint + "sim/add-schedule-params/";
+
+      if(download == "True") {
+        return this.http.post(url, formData, {responseType: "text", params: {"download": download}})
+        .pipe(
+          catchError(this.handleError)
+        );
+      } else {
+        return this.http.post(url, formData, {responseType: "json", params: {"download": download}})
+        .pipe(
+          catchError(this.handleError)
+        );
+      }
+
+
+
+    }
+
     getIfcProducts(file: File) {
+      console.log("call initiated")
       const formData = new FormData();
       formData.append('file', file, file.name);
 
-      const url = "http://127.0.0.1:8000/main/get-ifc-products/";
+      const url = this.endpoint + "main/get-ifc-products/";
 
       return this.http.post(url, formData)
       .pipe(

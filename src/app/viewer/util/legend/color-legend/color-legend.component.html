@@ -1,0 +1,49 @@
+<h4 style="text-align: left;">{{ title }}</h4>
+
+<div fxLayout="column" fxLayoutAlign="start start" fxLayoutGap="5px" style="width: 100%">
+
+  <button mat-stroked-button *ngIf="addNewOption" style="width: 100%" (click)="onAddNew()">{{addNewButtonText}}</button>
+
+  <!-- ITEMS -->
+  <div *ngFor="let item of data; index as i" fxLayout="column" fxLayoutAlign="start start" fxLayoutGap="5px" style="width: 100%">
+
+    <!-- DEFAULT ROW -->
+    <div *ngIf="!item.temporary" fxLayout="row" fxLayoutAlign="start start" fxLayoutGap="15px" (mouseover)="hoveringItem(item)" (click)="itemClick(i)" [class.clickable]="clickable || unfoldOnClick">
+
+      <lib-square *ngIf="shape == 'square'" [color]="item.color"></lib-square>
+      <lib-circle *ngIf="shape == 'round'" [color]="item.color"></lib-circle>
+
+      <div>{{item.text}} <span *ngIf="item.count != undefined">[{{item.count}}]</span></div>
+
+    </div>
+
+    <!-- NEW ITEM ROW -->
+    <div *ngIf="item.temporary" class="temp-row" fxLayout="row" fxLayoutAlign="start center" fxLayoutGap="15px" (mouseover)="hoveringItem(item)" [class.clickable]="clickable || unfoldOnClick">
+
+      <!-- Color picker with the loaded version results in an error! -->
+      <!-- <lib-square *ngIf="shape == 'square'" [color]="item.color" [(colorPicker)]="item.color"></lib-square>
+      <lib-circle *ngIf="shape == 'round'" [color]="item.color" [(colorPicker)]="item.color"></lib-circle>  -->
+      <lib-square *ngIf="shape == 'square'" [color]="item.color" ></lib-square>
+      <lib-circle *ngIf="shape == 'round'" [color]="item.color" ></lib-circle>
+
+      <div fxFlex="grow" style="text-align: left;">
+        <input [size]="item.text.length" style="border: none;" [(ngModel)]="item.text" (keydown)="updateColorForNewItem(item)">
+      </div>
+
+      <!-- Button row -->
+      <div fxLayout="row" fxLayoutAlign="start center" fxLayoutGap="0px">
+
+        <mat-icon aria-label="Discard" (click)="onDeleteNewItem()">delete_outline</mat-icon>
+        <mat-icon aria-label="Save" (click)="onSaveNewItem()">save</mat-icon>
+
+      </div>
+
+    </div>
+
+    <div *ngIf="unfolded == i" style="width: 100%">
+      <ng-content fxFlex="grow" select="[unfold]"></ng-content>
+    </div>
+
+  </div>
+
+</div>

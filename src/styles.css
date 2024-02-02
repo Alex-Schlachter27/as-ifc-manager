@@ -30,10 +30,16 @@ body {
 
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@200;300;400;500;600;700;800&display=swap');
 
+/* :root {
+  --primary-color: #B6E1F2;
+  --secondary-color: #005FAE;
+  --secondary-color-100: #000000bb;
+  --secondary-color-120: #122459;
+} */
+
 :root {
   --primary-color: #BCF124;
   --secondary-color: #6528D7;
-  /* TODO: Probably this needs to be called background-color */
   --secondary-color-100: #000000bb;
   --secondary-color-120: #1a2128;
 }

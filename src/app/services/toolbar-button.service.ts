@@ -31,8 +31,6 @@ export class ToolbarButtonService {
       const uiElement = new OBC.Button(viewer);
       uiElement.materialIcon = settings.icon;
       uiElement.tooltip = settings.tooltip;
-
-      toolbar.addChild(uiElement);
       uiElement.onClick.add(() => {
         if(settings.clickAction) {
           settings.clickAction(this._apiService);
@@ -41,28 +39,53 @@ export class ToolbarButtonService {
         }
       });
 
+      return uiElement
+
     }
 
-    uploadModelButton(toolbar: OBC.Toolbar, viewer: OBC.Components, ifcUploadInput: ElementRef) {
-      const uiElement = new OBC.Button(viewer);
-      uiElement.materialIcon = "upload";
-      uiElement.tooltip = "Upload Model (own)";
+    addContainerButton(viewer: OBC.Components, icon: string) {
+      const containerButton = new OBC.Button(viewer)
+      containerButton.materialIcon = icon
 
-      toolbar.addChild(uiElement);
+      return containerButton
+    }
+
+    addChildButton(viewer: OBC.Components, inputRef: ElementRef, name: string, tooltip?: string) {
+
+      const uiElement = new OBC.Button(viewer, { name });
+      // uiElement.materialIcon = "upload";
+      if (tooltip) {
+        uiElement.tooltip = tooltip;
+      }
+      uiElement.onClick.add(() => {
+        inputRef.nativeElement.click();
+      });
+
+      return uiElement
+    }
+
+    uploadModelButton(viewer: OBC.Components, ifcUploadInput: ElementRef) {
+
+      const uiElement = new OBC.Button(viewer, { name: "IFC" });
+      // uiElement.materialIcon = "upload";
+      uiElement.tooltip = "Upload Model (own)";
       uiElement.onClick.add(() => {
         ifcUploadInput.nativeElement.click();
       });
+
+      return uiElement
     }
 
-    uploadIDSlButton(toolbar: OBC.Toolbar, viewer: OBC.Components, idsUploadInput: ElementRef) {
-      const uiElement = new OBC.Button(viewer);
-      uiElement.materialIcon = "upload";
+    uploadIDSlButton(viewer: OBC.Components, idsUploadInput: ElementRef) {
+      const uiElement = new OBC.Button(viewer, { name: "IDS" });
+      // uiElement.materialIcon = "upload";
       uiElement.tooltip = "Upload IDS";
 
-      toolbar.addChild(uiElement);
       uiElement.onClick.add(() => {
         idsUploadInput.nativeElement.click();
       });
+
+      return uiElement
     }
 
     addProductButton(toolbar: OBC.Toolbar, ifcFile: File, viewer: OBC.Components) {
