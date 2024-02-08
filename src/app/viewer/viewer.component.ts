@@ -322,9 +322,9 @@ export class ViewerComponent implements OnInit {
       // console.log(materialPassed)
       let materialPassed = new THREE.MeshStandardMaterial({ color: this.colorMap.idsSuccess});
       if(transparent) {
-        materialPassed.depthTest = true;
-        materialPassed.transparent = true;
-        materialPassed.opacity = 0.3;
+        // materialPassed.depthTest = true;
+        // materialPassed.transparent = true;
+        // materialPassed.opacity = 0.3;
       }
       this.highlighterComponent?.add("highlighter_validEntities", [materialPassed])
     }
