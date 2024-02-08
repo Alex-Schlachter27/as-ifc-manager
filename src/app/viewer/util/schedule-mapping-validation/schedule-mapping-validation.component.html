@@ -1,0 +1,50 @@
+<!-- <button
+  mat-raised-button
+  class="btn"
+  id="bottom-button"
+  (click)="loadIfcAsFragments()"
+>Basic</button> -->
+
+<div class="schedule-result-container">
+
+  <div class="result-message">{{scheduleParamsResponse.message}}</div>
+
+  <mat-accordion class="example-headers-align" multi>
+    <div *ngFor="let key of Object.keys(scheduleParamsResponse.error_list)" style="margin-bottom: 5px;">
+      <mat-expansion-panel class="error-category" [disabled]="scheduleParamsResponse.error_list[key].items.length == 0">
+        <mat-expansion-panel-header>
+          <mat-panel-title>
+            <div class="panel-title">
+              <!-- Title -->
+              {{ key }}
+
+              <!-- Toolbar -->
+              <div class="ruleContainerToolbar">
+
+                {{ scheduleParamsResponse.error_list[key].ids.length }}
+
+                <button mat-icon-button [class]="scheduleParamsResponse.error_list[key].items.length == 0 ? 'nonClickable' : 'clickable'" (click)="handleShowResults(scheduleParamsResponse.error_list[key].ids); $event.stopPropagation()">
+                  <mat-icon >visibility</mat-icon>
+                </button>
+
+              </div>
+
+            </div>
+
+          </mat-panel-title>
+        </mat-expansion-panel-header>
+        <div *ngFor="let item of scheduleParamsResponse.error_list[key].items; index as i" id="spec-content">
+          <div class="item-row">
+            <div>{{ item.Name }} ({{item.type}}, {{item.GlobalId}})</div>
+            <button mat-icon-button class="clickable" (click)="handleShowResults([item.id])">
+              <mat-icon >visibility</mat-icon>
+            </button>
+
+          </div>
+
+        </div>
+      </mat-expansion-panel>
+    </div>
+  </mat-accordion>
+
+</div>

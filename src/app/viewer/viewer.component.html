@@ -42,6 +42,12 @@
       (showResults)="visualizeFailedEntities($event)"
     ></validation-report>
 
+    <schedule-mapping-report
+      *ngIf="scheduleParamsResponse"
+      [scheduleParamsResponse]="scheduleParamsResponse"
+      (showResults)="visualizeFailedEntities($event, true)"
+    ></schedule-mapping-report>
+
 
     <!-- LEGEND -->
     <color-legend-round
@@ -55,6 +61,53 @@
 
   </div>
 </div>
+
+
+<!-- Modal -->
+
+<dialog id="schedule-mapping-modal">
+  <form id="schedule-mapping-form">
+    <h2>Mapping Definition</h2>
+    <div class="input-list">
+      <div class="form-field-container">
+        <label><span class="material-icons-round">folder</span>Sheet Name</label>
+        <input style="padding: 10px 15px 10px 15px;" name="schedule_sheet" type="text" placeholder="What's the sheet name of the schedule data?" value={{scheduleMappingParams.schedule_sheet}}>
+        <!-- <p style="color: gray; font-size: var(--font-sm); margin-top: 5px; font-style: italic;">e.g. {{scheduleMappingParams.schedule_sheet}}</p> -->
+      </div>
+      <div class="form-field-container">
+        <label><span class="material-icons-round">view_column</span>Mapping Column</label>
+        <input style="padding: 10px 15px 10px 15px;" name="mapping_column" type="text" placeholder="What's the name of the column for mapping schedule activities?" value={{scheduleMappingParams.mapping_column}}/>
+        <!-- <p style="color: gray; font-size: var(--font-sm); margin-top: 5px; font-style: italic;">e.g. {{scheduleMappingParams.mapping_column}}</p> -->
+      </div>
+      <div class="form-field-container">
+        <label><span class="material-icons-round">construction</span>Task Type</label>
+        <input style="padding: 10px 15px 10px 15px;" name="task_type_column" type="text" placeholder="What's the name of the column defining the activity type?" value={{scheduleMappingParams.task_type_column}}>
+        <!-- <p style="color: gray; font-size: var(--font-sm); margin-top: 5px; font-style: italic;">e.g. {{scheduleMappingParams.task_type_column}}</p> -->
+
+      </div>
+      <div class="form-field-container">
+        <label><span class="material-icons-round">settings</span>Target Pset</label>
+        <input style="padding: 10px 15px 10px 15px;" name="target_pset" type="text" placeholder="What's the property set, the mapping property is found??" value={{scheduleMappingParams.target_pset}}>
+        <!-- <p style="color: gray; font-size: var(--font-sm); margin-top: 5px; font-style: italic;">e.g. {{scheduleMappingParams.target_pset}}</p> -->
+      </div>
+      <div class="form-field-container">
+        <label><span class="material-icons-round">person</span>Id Property</label>
+        <input style="padding: 10px 15px 10px 15px;" name="identity_prop" type="text" placeholder="What's the property for mapping individual elements?" value={{scheduleMappingParams.identity_prop}}>
+        <p style="color: gray; font-size: var(--font-sm); margin-top: 5px; font-style: italic;">e.g. {{scheduleMappingParams.identity_prop}}</p>
+      </div>
+      <div class="form-field-container">
+        <label><span class="material-icons-round">group</span>Grouping Property</label>
+        <input style="padding: 10px 15px 10px 15px;" name="group_prop" type="text" placeholder="What's the property for mapping groups of elements?" value={{scheduleMappingParams.group_prop}}>
+        <p style="color: gray; font-size: var(--font-sm); margin-top: 5px; font-style: italic;">e.g. {{scheduleMappingParams.group_prop}}</p>
+      </div>
+      <div style="display: flex; margin: 10px 0px 10px auto; column-gap: 10px;">
+        <button type="button" style="background-color: transparent;" (click)="closeModal('schedule-mapping-modal')">Cancel</button>
+        <!-- <button type="button" style="background-color: transparent;" data-bs-dismiss="modal">Cancel</button> -->
+        <button type="submit" style="background-color: rgb(18, 145, 18);">Accept</button>
+      </div>
+    </div>
+  </form>
+</dialog>
 
 
 

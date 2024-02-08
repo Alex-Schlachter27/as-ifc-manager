@@ -43,9 +43,10 @@ export class ToolbarButtonService {
 
     }
 
-    addContainerButton(viewer: OBC.Components, icon: string) {
-      const containerButton = new OBC.Button(viewer)
-      containerButton.materialIcon = icon
+    addContainerButton(viewer: OBC.Components, icon: string, tooltip?: string) {
+      const containerButton = new OBC.Button(viewer);
+      if(tooltip) containerButton.tooltip = tooltip;
+      containerButton.materialIcon = icon;
 
       return containerButton
     }
@@ -68,7 +69,7 @@ export class ToolbarButtonService {
 
       const uiElement = new OBC.Button(viewer, { name: "IFC" });
       // uiElement.materialIcon = "upload";
-      uiElement.tooltip = "Upload Model (own)";
+      // uiElement.tooltip = "Upload Model (own)";
       uiElement.onClick.add(() => {
         ifcUploadInput.nativeElement.click();
       });
@@ -79,7 +80,7 @@ export class ToolbarButtonService {
     uploadIDSlButton(viewer: OBC.Components, idsUploadInput: ElementRef) {
       const uiElement = new OBC.Button(viewer, { name: "IDS" });
       // uiElement.materialIcon = "upload";
-      uiElement.tooltip = "Upload IDS";
+      // uiElement.tooltip = "Upload IDS";
 
       uiElement.onClick.add(() => {
         idsUploadInput.nativeElement.click();

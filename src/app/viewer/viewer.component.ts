@@ -8,6 +8,15 @@ import { ApiService } from '../services/ifc-api.service';
 import { ToolbarButtonService } from '../services/toolbar-button.service';
 import { HttpResponse } from '@angular/common/http';
 
+export interface IMappingParams {
+  schedule_sheet: string
+	mapping_column: string
+	task_type_column: string
+	target_pset: string
+	identity_prop: string
+  group_prop: string
+}
+
 @Component({
   selector: 'viewer',
   templateUrl: './viewer.component.html',
@@ -24,6 +33,7 @@ export class ViewerComponent implements OnInit {
       // initially setter gets called with undefined
       this.canvas = content.nativeElement;
       this.initScene(this.canvas);
+      this.initMappingForm()
     }
   }
   @ViewChild('ifcUpload') ifcUpload!: ElementRef;
@@ -44,6 +54,7 @@ export class ViewerComponent implements OnInit {
   public ifcFile?: File;
   public ifcFiles: File[] = [];
   public idsFile?: File;
+  public scheduleFile?: File;
 
   public mainToolbar?: OBC.Toolbar;
 
@@ -67,6 +78,14 @@ export class ViewerComponent implements OnInit {
 
   public idsResult?: any;
   public scheduleParamsResponse?: any;
+  public scheduleMappingParams: IMappingParams = {
+    schedule_sheet: "Task_Table1",
+    mapping_column: "Mark",
+    task_type_column: "Task_Type_(4D)",
+    target_pset: "Identity Data",
+    identity_prop: "Mark",
+    group_prop: "PAA_Group Identification",
+  }
 
 
   constructor(
@@ -111,6 +130,7 @@ export class ViewerComponent implements OnInit {
     this.viewer.init();
     cameraComponent.updateAspect();
     postproduction.enabled = true;
+    // postproduction.customEffects.outlineEnabled = true;
 
     const grid = new OBC.SimpleGrid(this.viewer, new THREE.Color(0x444444))
     postproduction.customEffects.excludedMeshes.push(grid.get())
@@ -152,9 +172,9 @@ export class ViewerComponent implements OnInit {
     // (Model) Upload
     const modelButton = this._button.uploadModelButton(this.viewer, this.ifcUpload);
     const idsButton = this._button.uploadIDSlButton(this.viewer, this.idsUpload);
-    const scheduleButton = this._button.addChildButton(this.viewer, this.scheduleUpload, "Schedule", "Upload 4D Schedule");
+    const scheduleButton = this._button.addChildButton(this.viewer, this.scheduleUpload, "Schedule");
 
-    const containerButton = this._button.addContainerButton(this.viewer, "upload")
+    const containerButton = this._button.addContainerButton(this.viewer, "upload", "Upload IFC, IDS, Schedule")
     containerButton.addChild(
       modelButton,
       idsButton,
@@ -262,24 +282,12 @@ export class ViewerComponent implements OnInit {
       console.log("No file selected!");
       return;
     }
-    const scheduleFile = event.target.files[0] as File;
+    this.scheduleFile = event.target.files[0] as File;
     console.log("schedule loaded!")
-    console.log(scheduleFile)
+    console.log(this.scheduleFile)
 
-    // IDS Validation
-    const mainToolbar = this.viewer.ui.toolbars[0];
-    // console.log(mainToolbar)
-
-    const simCheckButton = this.addScheduleParamsCheckButton(this.viewer, this.ifcFiles[0], scheduleFile);
-    const simDownloadButton = this.addScheduleParamsDownloadButton(this.viewer, this.ifcFiles[0], scheduleFile);
-
-    const containerButton = this._button.addContainerButton(this.viewer, "construction")
-    containerButton.addChild(
-      simCheckButton,
-      simDownloadButton
-    )
-    mainToolbar.addChild(containerButton)
-
+    // Open Modal to insert Mapping params
+    this.showModal("schedule-mapping-modal")
   }
 
 
@@ -292,7 +300,7 @@ export class ViewerComponent implements OnInit {
       });
   }
 
-  visualizeFailedEntities(failedEntities: any[]) {
+  visualizeFailedEntities(failedEntities: any[], transparent: boolean = false) {
     // Use three.js to visualize the failed entities in your 3D model
     console.log(failedEntities);
 
@@ -306,9 +314,19 @@ export class ViewerComponent implements OnInit {
     }
 
     // TODO: Only set the onws that meet the requirements to green!
+    console.log("highlight everything green!")
     const allItemsFragmentMap = this.getFragmentIdMapOfAllIds();
     if(!this.highlighterComponent?.highlightMats["highlighter_validEntities"]) {
-      this.highlighterComponent?.add("highlighter_validEntities", [new THREE.MeshStandardMaterial({ color: this.colorMap.idsSuccess})])
+      // let materialPassed = new THREE.MeshStandardMaterial({ color: this.colorMap.idsSuccess, depthTest: false, opacity: 0.1, transparent: true});
+      // let materialPassed = new THREE.MeshStandardMaterial({ color: this.colorMap.idsSuccess});
+      // console.log(materialPassed)
+      let materialPassed = new THREE.MeshStandardMaterial({ color: this.colorMap.idsSuccess});
+      if(transparent) {
+        materialPassed.depthTest = true;
+        materialPassed.transparent = true;
+        materialPassed.opacity = 0.3;
+      }
+      this.highlighterComponent?.add("highlighter_validEntities", [materialPassed])
     }
     this.highlighterComponent?.highlightByID("highlighter_validEntities", allItemsFragmentMap!)
 
@@ -348,6 +366,7 @@ export class ViewerComponent implements OnInit {
     ];
     this.activeViewerComponents.legend = true;
   }
+
 
   hightlightByExpressIds(ids: number[], highlightName: string, hex = "#F82C00") {
     const fragmentMap = this.getFragmentIdMapOfExpressIds(ids)
@@ -442,7 +461,14 @@ export class ViewerComponent implements OnInit {
       const entitiesSystem = this.fragmentClassifier!.get()['entities'];
       for(const entity in entitiesSystem) {
         if(!this.highlighterComponent?.highlightMats[entity]) {
-          this.highlighterComponent?.add(entity, [new THREE.MeshStandardMaterial({ color: this.getRandomColor()})]);
+          let material = new THREE.MeshStandardMaterial({ color: this.getRandomColor()});
+
+          // let material = new THREE.MeshStandardMaterial({ color: "#FF0000"});
+          // let material = new THREE.MeshStandardMaterial({ color: "#FF0000", opacity: 0.5, transparent: true});
+          // let material = new THREE.MeshStandardMaterial({ color:"#00ff00" , depthTest: false, opacity: 0.5, transparent: true});
+          this.highlighterComponent!.add(entity, [material]);
+          // this.highlighterComponent!.outlineEnabled = true;
+          // this.highlighterComponent!.outlineMaterial.color.set(0xf0ff7a);
         }
         this.highlighterComponent?.highlightByID(entity, entitiesSystem[entity])
       }
@@ -554,19 +580,9 @@ export class ViewerComponent implements OnInit {
 
   }
 
-  addScheduleParamsCheckButton(viewer: OBC.Components, ifcFile: File, scheduleFile?: File) {
+  addScheduleParamsCheckButton(viewer: OBC.Components, ifcFile: File, params: IMappingParams, scheduleFile?: File) {
     const uiElement = new OBC.Button(viewer, { name: "Check Mapping" });
     uiElement.tooltip = "Check 4D Params Mapping from Schedule";
-
-    const params = {
-      schedule_sheet: "Task_Table1",
-      mapping_column: "Mark",
-      task_type_column: "Task_Type_(4D)",
-      target_pset: "Identity Data",
-      identity_prop: "Mark",
-      group_prop: "PAA_Group Identification",
-
-    }
 
     uiElement.onClick.add(() => {
       if(!scheduleFile) {
@@ -595,19 +611,9 @@ export class ViewerComponent implements OnInit {
     }
   }
 
-  addScheduleParamsDownloadButton(viewer: OBC.Components, ifcFile: File, scheduleFile?: File) {
+  addScheduleParamsDownloadButton(viewer: OBC.Components, ifcFile: File, params: IMappingParams, scheduleFile?: File) {
     const uiElement = new OBC.Button(viewer, { name: "Download" });
     uiElement.tooltip = "Download 4D Model";
-
-    const params = {
-      schedule_sheet: "Task_Table1",
-      mapping_column: "Mark",
-      task_type_column: "Task_Type_(4D)",
-      target_pset: "Identity Data",
-      identity_prop: "Mark",
-      group_prop: "PAA_Group Identification",
-
-    }
 
     const download: string = "True";
 
@@ -699,4 +705,83 @@ export class ViewerComponent implements OnInit {
     }
   }
 
+
+
+// Modal
+
+showModal(id: string) {
+  const modal = document.getElementById(id)
+  if (modal && modal instanceof HTMLDialogElement) {
+    modal.showModal()
+  } else {
+    console.warn("The provided modal wasn't found. ID: ", id)
+  }
 }
+
+public closeModal(id: string) {
+  const modal = document.getElementById(id)
+  if (modal && modal instanceof HTMLDialogElement) {
+    modal.close()
+  } else {
+    console.warn("The provided modal wasn't found. ID: ", id)
+  }
+}
+
+// // This document object is provided by the browser, and its main purpose is to help us interact with the DOM.
+// const newProjectBtn = document.getElementById("new-project-btn")
+// if (newProjectBtn) {
+//   newProjectBtn.addEventListener("click", () => {showModal("new-project-modal")})
+// } else {
+//   console.warn("New projects button was not found")
+// }
+initMappingForm() {
+  const mappingForm = document.getElementById("schedule-mapping-form")
+
+  if (mappingForm && mappingForm instanceof HTMLFormElement) {
+    mappingForm.addEventListener("submit", (e) => {
+      e.preventDefault()
+      const formData = new FormData(mappingForm)
+      const mappingData: IMappingParams = {
+        schedule_sheet: formData.get("schedule_sheet") as string,
+        mapping_column: formData.get("mapping_column") as string,
+        task_type_column: formData.get("task_type_column") as string,
+        target_pset: formData.get("target_pset") as string,
+        identity_prop: formData.get("identity_prop") as string,
+        group_prop: formData.get("group_prop") as string,
+      }
+      try {
+        console.log(mappingData)
+        this.scheduleMappingParams = mappingData;
+        // Schedule Mapping Process
+        const mainToolbar = this.viewer.ui.toolbars[0];
+        // console.log(mainToolbar)
+
+        const simCheckButton = this.addScheduleParamsCheckButton(this.viewer, this.ifcFiles[0], this.scheduleMappingParams, this.scheduleFile);
+        const simDownloadButton = this.addScheduleParamsDownloadButton(this.viewer, this.ifcFiles[0], this.scheduleMappingParams, this.scheduleFile);
+
+        const containerButton = this._button.addContainerButton(this.viewer, "construction", "Run 4D Mapping")
+        containerButton.addChild(
+          simCheckButton,
+          simDownloadButton
+        )
+        mainToolbar.addChild(containerButton)
+
+        // mappingForm.reset()
+        this.closeModal("schedule-mapping-modal")
+      } catch (err) {
+        alert(err)
+      }
+    })
+
+
+  } else {
+    console.warn("The project form was not found. Check the ID!")
+  }
+}
+
+
+
+
+
+}
+
