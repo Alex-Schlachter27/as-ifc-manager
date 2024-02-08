@@ -107,8 +107,21 @@ export class ViewerComponent implements OnInit {
     console.log("initScene")
     // Scene
     const sceneComponent = new OBC.SimpleScene(this.viewer);
-    sceneComponent.setup()
     this.viewer.scene = sceneComponent;
+    sceneComponent.setup();
+
+    // Get scene for further use
+    this.scene = sceneComponent.get()
+    // this.scene.background = null
+    // Add light (already done with setup)
+    // const directionalLight = new THREE.DirectionalLight();
+    // directionalLight.position.set(5, 10, 3);
+    // directionalLight.intensity = 0.5;
+    // this.scene.add(directionalLight);
+
+    // const ambientLight = new THREE.AmbientLight();
+    // ambientLight.intensity = 0.5;
+    // this.scene.add(ambientLight);
 
     // Renderer
     // const rendererComponent = new OBC.SimpleRenderer(this.viewer, canvas);
@@ -137,17 +150,6 @@ export class ViewerComponent implements OnInit {
 
     // console.log(this.viewer)
 
-    // Get scene for further use
-    this.scene = this.viewer.scene.get() as THREE.Scene;
-    // Add light (already done with setup)
-    // const directionalLight = new THREE.DirectionalLight();
-    // directionalLight.position.set(5, 10, 3);
-    // directionalLight.intensity = 0.5;
-    // this.scene.add(directionalLight);
-
-    // const ambientLight = new THREE.AmbientLight();
-    // ambientLight.intensity = 0.5;
-    // this.scene.add(ambientLight);
 
     this.fragmentManager = this._modelLoader.initFragmentManager(this.viewer);
     this.ifcLoader = this._modelLoader.initIfcLoader(this.viewer);
@@ -155,6 +157,10 @@ export class ViewerComponent implements OnInit {
     // Set up highlighter
     this.highlighterComponent = new OBC.FragmentHighlighter(this.viewer)
     this.highlighterComponent.setup()
+
+    // Hider
+    const hider = new OBC.FragmentHider(this.viewer);
+    await hider.loadCached();
 
     // Set up properties
     const propertiesProcessor = new OBC.IfcPropertiesProcessor(this.viewer)
@@ -167,6 +173,7 @@ export class ViewerComponent implements OnInit {
 
     this._modelLoader.initiateLoadingProcesses(propertiesProcessor, this.highlighterComponent, this.fragmentClassifier);
 
+    // TOOLBAR
     this.mainToolbar = await this.addToolbar(this.viewer);
 
     // (Model) Upload
@@ -185,6 +192,7 @@ export class ViewerComponent implements OnInit {
     this.mainToolbar.addChild(
       containerButton,
       this.fragmentManager.uiElement.get("main"),
+      propertiesProcessor.uiElement.get("main"),
     );
 
     // Highlight by Class
@@ -300,18 +308,16 @@ export class ViewerComponent implements OnInit {
       });
   }
 
-  visualizeFailedEntities(failedEntities: any[], transparent: boolean = false) {
+  async visualizeFailedEntities(idList: any[], transparent: boolean = false) {
     // Use three.js to visualize the failed entities in your 3D model
-    console.log(failedEntities);
+    console.log(idList);
 
     // Reset 3D scene
     this.highlighterComponent?.clear();
 
-    let idList = [];
-    for (let i = 0; i < failedEntities.length; i++) {
-      let failedEntity = failedEntities[i];
-      idList.push(failedEntity.id)
-    }
+    // Hide original elements
+    const hider = await this.viewer.tools.get(OBC.FragmentHider)
+    hider.set(false)
 
     // TODO: Only set the onws that meet the requirements to green!
     console.log("highlight everything green!")
@@ -322,7 +328,7 @@ export class ViewerComponent implements OnInit {
       // console.log(materialPassed)
       let materialPassed = new THREE.MeshStandardMaterial({ color: this.colorMap.idsSuccess});
       if(transparent) {
-        // materialPassed.depthTest = true;
+        // materialPassed.depthTest = false;
         // materialPassed.transparent = true;
         // materialPassed.opacity = 0.3;
       }
@@ -331,13 +337,14 @@ export class ViewerComponent implements OnInit {
     this.highlighterComponent?.highlightByID("highlighter_validEntities", allItemsFragmentMap!)
 
 
-
     // Highlight failed entities
     const failedEntitiesFragmentMap = this.getFragmentIdMapOfExpressIds(idList);
 
     if(failedEntitiesFragmentMap) {
+      console.log("highlight failed entities")
       // if highlighter does not yet exist, create it
       if(!this.highlighterComponent?.highlightMats["highlighter_failedEntities"]) {
+        console.log("highlight failed entities 2")
         this.highlighterComponent?.add("highlighter_failedEntities", [new THREE.MeshStandardMaterial({ color: this.colorMap.idsFailed})])
       }
       this.highlighterComponent?.highlightByID("highlighter_failedEntities", failedEntitiesFragmentMap)
@@ -357,7 +364,7 @@ export class ViewerComponent implements OnInit {
         "text": "failed",
         "value": "failed",
         "color": this.colorMap.idsFailed,
-        "count": failedEntities.length,
+        "count": idList.length,
       },{
         "text": "ok",
         "value": "ok",
@@ -396,11 +403,13 @@ export class ViewerComponent implements OnInit {
     // Loop through all ids and add to fragmentMap
     for (let i = 0; i < ids.length; i++) {
       const id = ids[i];
+      console.log(id)
       const data = group.data[id];
       console.log(data)
       let fragmentID: any;
       if (!data) {
         console.log(group);
+        console.log("id was not found in fragment group");
         return
       };
       for (const key of data[0]) {
@@ -453,7 +462,7 @@ export class ViewerComponent implements OnInit {
     uiElement.tooltip = "Highlight by class";
 
     toolbar.addChild(uiElement);
-    uiElement.onClick.add(() => {
+    uiElement.onClick.add(async () => {
       const fragment = this.fragmentManager;
       console.log(fragment);
       console.log(this.highlighterComponent)
@@ -588,6 +597,8 @@ export class ViewerComponent implements OnInit {
       if(!scheduleFile) {
         alert('Please upload a schedule-file first!');
       } else {
+        // Not working with bigger files!
+        // Check out .stream() --> https://stackoverflow.com/questions/73442335/how-to-upload-a-large-file-%e2%89%a53gb-to-fastapi-backend
         this._apiService.addScheduleParams(ifcFile, scheduleFile, params)
           .subscribe((response: any) => {
             console.log(response);

@@ -73,6 +73,7 @@ export class ModelLoaderService {
     }
 
     public initiateLoadingProcesses(propertiesProcessor: OBC.IfcPropertiesProcessor, highlighterComponent: OBC.FragmentHighlighter, fragmentClassifier: OBC.FragmentClassifier) {
+      // Move to main page again!
       if(!this.ifcLoader) return;
       if(!this.fragmentManager) return;
 
@@ -80,19 +81,24 @@ export class ModelLoaderService {
         console.log(model)
         this.stateService.setModelCount(this.fragmentManager!.groups.length);
 
-        propertiesProcessor.process(model);
-        fragmentClassifier.byEntity(model);
-
-        highlighterComponent.events['select'].onHighlight.add((selection) => {
-          console.log(selection)
-          const fragmentID = Object.keys(selection)[0]
-          const expressID = Number([...selection[fragmentID]][0])
-          console.log(highlighterComponent)
-
-          propertiesProcessor.renderProperties(model, expressID)
-        })
         highlighterComponent.update()
         highlighterComponent.outlineEnabled = true;
+
+        try {
+          fragmentClassifier.byStorey(model)
+          fragmentClassifier.byEntity(model)
+          // // const tree = await createModelTree()
+          // await classificationsWindow.slots.content.dispose(true)
+          // classificationsWindow.addChild(tree)
+
+          propertiesProcessor.process(model)
+          highlighterComponent.events["select"].onHighlight.add((fragmentMap) => {
+            const expressID = [...Object.values(fragmentMap)[0]][0]
+            propertiesProcessor.renderProperties(model, Number(expressID))
+          })
+        } catch (error) {
+          alert(error)
+        }
       })
     }
 

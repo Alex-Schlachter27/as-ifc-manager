@@ -39,6 +39,11 @@
   height: 50px;
 }
 
+.example-headers-align {
+  overflow: auto;
+  max-height: calc(100vh - 74px - 20px - 145px - 100px);
+}
+
 .example-headers-align .mat-expansion-panel-header-title,
 .example-headers-align .mat-expansion-panel-header-description {
 flex-basis: 0;
@@ -60,6 +65,10 @@ align-items: center;
   margin-bottom: 5px;
 }
 
+::ng-deep .mat-expansion-panel-body {
+  overflow: auto !important;
+  max-height: 250px !important;
+}
 
 .schedule-result-container {
   width: 100%;
@@ -72,6 +81,12 @@ align-items: center;
   border-radius: 10px;
   background-color: var(--background-100);
   color: white;
+}
+
+.schedule-result-container h2 {
+  padding: 20px;
+  border-bottom: 2px solid var(--background-200);
+  margin: 0 !important;
 }
 
 .error-category {

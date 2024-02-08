@@ -6,6 +6,7 @@
 >Basic</button> -->
 
 <div class="schedule-result-container">
+  <h2>Mapping Result</h2>
 
   <div class="result-message">{{scheduleParamsResponse.message}}</div>
 
@@ -33,6 +34,7 @@
 
           </mat-panel-title>
         </mat-expansion-panel-header>
+
         <div *ngFor="let item of scheduleParamsResponse.error_list[key].items; index as i" id="spec-content">
           <div class="item-row">
             <div>{{ item.Name }} ({{item.type}}, {{item.GlobalId}})</div>

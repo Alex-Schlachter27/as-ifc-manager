@@ -19,7 +19,14 @@ export class ValidationComponent implements OnInit {
 
   handleShowResults(requirement: any) {
     // Assuming you want to show results for the selected requirement
-    this.showResults.emit(requirement.failed_entities);
+    const failedEntities = requirement.failed_entities;
+    console.log(failedEntities)
+    let idList = [];
+    for (let i = 0; i < failedEntities.length; i++) {
+      let failedEntity = failedEntities[i];
+      idList.push(failedEntity.id)
+    }
+    this.showResults.emit(idList);
   }
 
   toggleshowEntityList() {
