@@ -85,7 +85,7 @@ export class ModelLoaderService {
         highlighterComponent.outlineEnabled = true;
 
         try {
-          fragmentClassifier.byStorey(model)
+          // fragmentClassifier.byStorey(model)
           fragmentClassifier.byEntity(model)
           // // const tree = await createModelTree()
           // await classificationsWindow.slots.content.dispose(true)
@@ -93,6 +93,8 @@ export class ModelLoaderService {
 
           propertiesProcessor.process(model)
           highlighterComponent.events["select"].onHighlight.add((fragmentMap) => {
+            // const fragmentID = Object.keys(selection)[0]
+            // const expressID = Number([...selection[fragmentID]][0])
             const expressID = [...Object.values(fragmentMap)[0]][0]
             propertiesProcessor.renderProperties(model, Number(expressID))
           })

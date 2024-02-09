@@ -159,8 +159,8 @@ export class ViewerComponent implements OnInit {
     this.highlighterComponent.setup()
 
     // Hider
-    const hider = new OBC.FragmentHider(this.viewer);
-    await hider.loadCached();
+    // const hider = new OBC.FragmentHider(this.viewer);
+    // await hider.loadCached();
 
     // Set up properties
     const propertiesProcessor = new OBC.IfcPropertiesProcessor(this.viewer)
@@ -316,8 +316,8 @@ export class ViewerComponent implements OnInit {
     this.highlighterComponent?.clear();
 
     // Hide original elements
-    const hider = await this.viewer.tools.get(OBC.FragmentHider)
-    hider.set(false)
+    // const hider = await this.viewer.tools.get(OBC.FragmentHider)
+    // hider.set(false)
 
     // TODO: Only set the onws that meet the requirements to green!
     console.log("highlight everything green!")
